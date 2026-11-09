@@ -1,4 +1,4 @@
-# Contribution: [Issue Title]
+# Contribution: Adding coordinate reference system test coverage for r.proj
 
 Path: `beat-2-contribution/contribution-story.md`
 
@@ -7,12 +7,11 @@ the repository is not read. **Keep every section header below under its exact na
 format criteria grade exactly that. Your course repo link is the whole submission: no tool
 files and no evidence uploads are part of Assignment 5.
 
-**Contribution Number:** [1]
-**Student:** [Student name]
-**GitHub Username:** [your GitHub username, exactly as it appears on your profile - no @, no
-profile URL. Your comments upstream are identified by this name.]
-**Issue:** [GitHub issue link]
-**Pull Request:** [GitHub PR link, once opened]
+**Contribution Number:** 1
+**Student:** Apoorva Vutukur
+**GitHub Username:** AP2001211
+**Issue:** https://github.com/OSGeo/grass/issues/2512
+**Pull Request:** Pending
 
 One repository, built across units 5 to 8, telling the whole story of your real
 contribution. Fill it as you work, not at the end — the sections below ask for evidence that
@@ -59,11 +58,12 @@ one in the week it belongs to.
 
 I adapted my Unit 1 issue-selection skill into an issue-scout with three Python-focused GitHub search queries and ranking filters based on assignment status, recent activity, labels, and comment counts. My first scan evaluated five issues, accepting two and rejecting three, but revealed that the ranking favored newly created repositories and sometimes selected multiple issues from the same project. I updated the strategy to retain only one candidate per repository in the initial grading shortlist, reducing repeated evaluations of repository-level risks. When I graded two issues from the course selection site, the scout rejected both because existing pull requests already addressed them, reinforcing why checking active claims matters more than relying on a "good first issue" label.
 
-**Unit 6: [one line on the tool work]**
+**Unit 6: Installed voice guard, refined issue-scout, and tested upstream posting**
 
-[2-4 sentences: the voice-guard, the repo-memory file. What broke or
-fell short, and what changed because of it. "Nothing broke" counts when
-it is true - say how you know.]
+In Unit 6, I installed a shared voice guide and a voice-guard hook for upstream GitHub comments. During my first attempt to post on GRASS #2512, the hook blocked the command because my draft did not specify when I would report back. I revised the sentence to promise an update within three days, and the next posting attempt passed.
+
+My issue-scout also revealed limitations during selection. It initially accepted an issue reserved by maintainers, so I updated its `unclaimed` check and verified that the issue was subsequently rejected. I also discovered that GRASS #2512 had received substantial test coverage through a merged PR that wasn't linked to the issue. Rather than proposing duplicate work, I asked maintainers whether an additional polar CRS test would be useful.
+I also learned that an open issue can have most of its requested work already implemented through an unrelated merged PR, so checking only linked PRs is insufficient.
 
 **Unit 7: [one line on the tool work]**
 
@@ -79,24 +79,19 @@ drafted, what you did with the draft.]
 
 ## Why I Chose This Issue
 
-[1-2 paragraphs in your own words: how you searched, what your scan
-surfaced, what your scout's verdict said, why this issue fits your
-profile, and what you hope to learn. If your scout's verdict on it
-was reject and you chose it anyway, say so here and say why; choosing
-against your own tool silently is what loses points. Close with an
-honest read of the tool itself: where the scout fell short on a real
-wild search and what you changed or would change, or what convinced
-you it held up. **Record the link to your claim comment in this section too.**
-Not claimed yet? Write `claim pending` and today's date where the link goes,
-and add the link the moment your claim lands.]
+I searched for open-source issues that involved Python, testing, or backend development and were small enough for me to investigate and reproduce locally. I used my issue-scout to evaluate repositories for maintainer activity, project activity, scope feasibility, existing claims, and contribution policies. Several issues that initially looked promising were already being addressed by other contributors. I eventually selected OSGeo/grass #2512, which requests basic unit tests for the `r.proj` raster reprojection tool. My scout accepted the issue across all five checks. I was interested in it because I have experience working with Python and automated testing, and it offered an opportunity to learn more about geospatial systems and coordinate reference systems.
+
+Further investigation revealed a limitation in my scout. Although #2512 was still open, PR #7766 had already introduced pytest coverage for several `r.proj` behaviors without explicitly linking to the issue. Rather than assume that the original work was still needed, I examined the existing tests and identified a possible gap involving polar coordinate reference systems. I posted a clarification asking whether that additional coverage would be useful or whether the issue was effectively complete. This experience showed me that issue availability depends not only on assignments and open PRs but also on understanding what has already been implemented.
+
+**Clarification comment:** https://github.com/OSGeo/grass/issues/2512#issuecomment-6732311600
 
 **Toolkit**
 
-- Tool: issue-scout (your scout: your search strategy, your rubric),
-  and how you used it
-- What it produced: [the scan and its verdict on this issue, described]
-- Difficulties: [where it fell short, or "none met" if none did]
-- What changed: [what you patched or would update, or "nothing"]
+- **Tool:** issue-scout, using my revised issue-selection rubric to evaluate candidate GitHub issues.
+- **What it produced:** An accepted verdict for GRASS #2512, with evidence for all five required checks.
+- **Difficulties:** The scout did not detect that a merged PR had already implemented much of the requested functionality because the PR was not linked to the issue.
+- **What changed:** I investigated the existing tests before posting and changed my intended claim into a targeted clarification question. I would extend the scout to check for merged implementations that are not linked to the issue.
+
 
 ---
 
