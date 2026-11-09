@@ -126,32 +126,36 @@ Further investigation revealed a limitation in my scout. Although #2512 was stil
 
 **Environment Setup**
 
-[What a stranger would need to stand this up: your operating system,
-the relevant versions (language, runtime, package manager, the project
-itself), and how you set the project up. Then the challenges you faced
-and how you solved them, or that none came up.]
+I used macOS on an Apple Silicon (arm64) Mac with Docker Desktop. Because GRASS GIS was not installed locally, I downloaded the official `osgeo/grass-gis:main-ubuntu` Docker image and ran it using `linux/amd64` emulation.
+
+The environment used GRASS GIS 8.6.0dev at revision `efe1c22249`, Python 3.14.4, and pytest 9.2.0. I created a custom Docker image, `grass-ai301-test`, with a Python virtual environment and the required testing dependencies.
+
+My initial setup failed because the official image lacked pytest and the `ensurepip` component needed to create a virtual environment. I resolved this by installing `python3.14-venv` and adding pytest and NumPy to a custom Docker image.
 
 **Steps to Reproduce**
 
-1. [Step 1]
-2. [Step 2]
-3. [Observed result]
+1. Clone `OSGeo/grass` and use the repository at revision `efe1c22249`.
+2. Build the custom testing image using the Dockerfile documented in my `repro-draft.md`.
+3. Mount the repository into the container at `/workspace`, configure `PYTHONPATH` and `LD_LIBRARY_PATH` using `grass --config`, and run:
+
+   ```bash
+   python -m pytest raster/r.proj/tests/ -v
+   ```
+
+4. Inspect `raster/r.proj/tests/conftest.py`, `r_proj_methods_test.py`, and `r_proj_output_test.py` to identify the existing CRS coverage.
 
 **Reproduction Evidence**
 
-- **Commit showing reproduction:** [link to commit in your fork]
-- **Screenshots/logs:** [if applicable]
-- **My findings:** [what you discovered during reproduction; an
-  honest, evidenced cannot-reproduce that led you to re-pick or ask
-  the maintainer belongs here and costs you nothing]
+- **Commit showing reproduction:** No reproduction-specific commit yet; the investigation used upstream revision `efe1c22249`.
+- **Screenshots/logs:** pytest collected 11 tests: seven interpolation-method tests and four output-format tests. All 11 passed in 12.54 seconds. One `PytestConfigWarning` reported an unknown `timeout` configuration option.
+- **My findings:** PR #7766 had already introduced pytest coverage for EPSG:4326 to EPSG:3857. The existing setup creates an `input_polar` raster, but I found no test using it. This suggests additional polar CRS coverage might be useful, but I did not reproduce an incorrect reprojection result. I asked the maintainer whether that coverage would be wanted before implementing it.
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
-
+- **Tool:** repro-check, used to grade my claim and reproduction report against the issue, repository conventions, and actual execution evidence.
+- **What it produced:** An accepted claim and a reproduction report that passed all five required checks, supported by 11 successful baseline tests.
+- **Difficulties:** My first report was rejected because it lacked the complete Docker setup commands and quoted pytest evidence. The Docker image also initially lacked pytest and `ensurepip`.
+- **What changed:** I built a reusable testing image, added reproducible commands and direct evidence to the report, corrected inaccurate terminology, and regraded until all five checks passed.
 ---
 
 ## Solution Approach
