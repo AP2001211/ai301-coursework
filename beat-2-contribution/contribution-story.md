@@ -11,7 +11,7 @@ files and no evidence uploads are part of Assignment 5.
 **Student:** Apoorva Vutukur
 **GitHub Username:** AP2001211
 **Issue:** https://github.com/OSGeo/grass/issues/2512
-**Pull Request:** Pending
+**Pull Request:** https://github.com/OSGeo/grass/pull/8165
 
 One repository, built across units 5 to 8, telling the whole story of your real
 contribution. Fill it as you work, not at the end — the sections below ask for evidence that
@@ -147,7 +147,7 @@ My initial setup failed because the official image lacked pytest and the `ensure
 **Reproduction Evidence**
 
 - **Commit showing reproduction:** No reproduction-specific commit yet; the investigation used upstream revision `efe1c22249`.
-- **Screenshots/logs:** pytest collected 11 tests: seven interpolation-method tests and four output-format tests. All 11 passed in 12.54 seconds. One `PytestConfigWarning` reported an unknown `timeout` configuration option.
+- **Screenshots/logs:** pytest collected 11 tests: seven interpolation-method tests and four output-format tests. All 11 passed in 12.54 seconds. One `PytestConfigWarning` reported an unknown `timeout` configuration option. This was my reproduction-stage run, saved in `ai301-unit6-starter/evidence/r-proj-baseline.txt`; the 11.88-second result under Solution Approach is a separate, later re-run.
 - **My findings:** PR #7766 had already introduced pytest coverage for EPSG:4326 to EPSG:3857. The existing setup creates an `input_polar` raster, but I found no test using it. This suggests additional polar CRS coverage might be useful, but I did not reproduce an incorrect reprojection result. I asked the maintainer whether that coverage would be wanted before implementing it.
 
 **Toolkit**
@@ -162,29 +162,31 @@ My initial setup failed because the official image lacked pytest and the `ensure
 
 **Analysis**
 
-[Your analysis of the root cause: what is causing the issue, traced
-to the files and functions involved.]
+This is a possible missing test scenario, not a defect in `r.proj`. On `main`, the tests in `raster/r.proj/tests/` cover EPSG:4326 to EPSG:3857 only, and `conftest.py` creates an `input_polar` raster that no test reprojects. I personally re-ran the baseline using the `grass-ai301-test` Docker image built from commit `efe1c22249`: 11 passed, 1 warning in 11.88s. The warning is a non-failing pytest configuration warning.
+
+I then reviewed open draft PR #7807. It already adds an EPSG:3413 `session_pole` fixture and a test that reprojects `input_polar` serially and in parallel and checks that the outputs are bitwise identical. From reading the existing tests and #7807, I have not found an assertion on the bounds that `r.proj -p` reports for `input_polar` in EPSG:3413.
 
 **Proposed Solution**
 
-[High-level description of your fix approach, and what you are
-deliberately NOT changing.]
+My proposed contribution is now limited to a possible `r.proj -p` polar bounds regression test, subject to maintainer approval. I am deliberately not adding a second EPSG:3413 fixture or repeating #7807's polar reprojection test, and I am not changing `r.proj` production code.
 
 **Implementation Plan**
 
-1. [Modify file X to do Y]
-2. [Add or change Z]
-3. [Update tests]
+1. Run the existing `r.proj` test baseline and report the results on #2512. Done: 11 passed, 1 warning in 11.88s on `efe1c22249`.
+2. Ask maintainers whether a polar `-p` bounds test would be useful, and whether it belongs in #7807 or a separate PR. Done: posted a follow-up on #2512.
+3. Wait for maintainer clarification before writing any test. If they decline, stop here. Done: echoix recommended a focused new PR that can be merged independently (https://github.com/OSGeo/grass/issues/2512#issuecomment-6754067520).
+4. If approved, reuse #7807's `session_pole` fixture, determine and independently verify reference bounds for `input_polar`, and add a single bounds test. Done, with one change: because the PR had to merge independently of draft #7807, I used a module-scoped EPSG:3413 fixture in `r_proj_output_test.py` instead of `session_pole`. Submitted as PR #8165.
 
-[Record deviations here as they happen: what changed mid-build and
-why. A recorded deviation is honest work; silent drift is not.]
+Deviation: my original plan added its own EPSG:3413 fixture and polar reprojection test. After finding #7807, I narrowed it to the bounds assertion only, so as not to duplicate that work. #7807 also led me to keep my PR independent of it, so my test does not depend on its unmerged fixture.
+
+**Follow-up comment:** https://github.com/OSGeo/grass/issues/2512#issuecomment-6753752297
 
 **Toolkit**
 
-- Tool:
-- What it produced:
-- Difficulties:
-- What changed:
+- **Tool:** plan-check, used to grade my `plan.md` and draft plan comment against the issue thread, the repository, and related PRs.
+- **What it produced:** An initial accept, then a reject when a re-run found that open draft PR #7807 already adds an EPSG:3413 fixture and polar test, then an accept after I narrowed the plan to a bounds assertion.
+- **Difficulties:** My procedure only checked PRs linked from the issue. #7807 is not linked to #2512, so the strict procedure would have missed the overlap.
+- **What changed:** I added a step to `procedure.md` that searches open PRs touching the same module and files, and revised the plan and comment to name #7807 and avoid duplicating it.
 
 ---
 
@@ -209,13 +211,13 @@ observable named is not a strategy.]
 [A running log, added to as you work. Date each entry. What you
 built, decisions you made when you made them, wrong turns included.]
 
-**[Date]**
+**2026-11-09**
 
-[Entry]
+Personally verified the `r.proj` baseline using the `grass-ai301-test` Docker image built from commit `efe1c22249`: 11 passed, 1 warning in 11.88s (non-failing pytest configuration warning). Reviewed open draft PR #7807 and found it already adds an EPSG:3413 `session_pole` fixture and a serial-versus-parallel polar reprojection test, so I narrowed my proposal to a possible `r.proj -p` polar bounds regression test. Posted a follow-up on #2512 asking whether that test would be useful and whether it belongs in #7807 or a separate PR. No implementation or pull request has been created; I am awaiting maintainer clarification.
 
-**[Date]**
+**2026-11-09 (continued)**
 
-[Entry]
+echoix replied on #2512 that a focused new PR that can be merged independently might be easier to review for a first contribution. Since #7807 is an unmerged draft, I kept my test independent of it: I added a module-scoped EPSG:3413 fixture in `r_proj_output_test.py` (project `dst3413`, distinct from #7807's `dst_pole`) and left `conftest.py` unchanged. Before writing the test, I ran `r.proj -p` on `input_polar` in EPSG:3413: the bounds were finite and ordered, `-n` made no difference, and they matched `cs2cs` at the edge points `bordwalk_edge()` samples, about 2.2 km inside the exact extent. I then added `test_print_json_polar`, committed it as `r.proj: Add polar bounds regression test`, and rebased it onto upstream `0d8dd26551`. My first build of the rebased commit failed at CMake configure because turning FreeType off breaks the `g.mkfontcap` target; I re-enabled FreeType rather than changing GRASS code. I personally ran the full `raster/r.proj/tests/` suite on the GRASS build from the rebased commit (`efb3dced6b`, Ubuntu 26.04 arm64, PROJ 9.7.1): 12 passed, 1 warning in 2.58s. I pushed the branch to my fork and opened PR #8165 (GitHub records it as opened 2026-11-10 00:57 UTC). It is open and awaiting review.
 
 **Toolkit**
 
@@ -228,20 +230,16 @@ built, decisions you made when you made them, wrong turns included.]
 
 ## Pull Request
 
-**PR Link:** [GitHub PR URL when opened]
+**PR Link:** https://github.com/OSGeo/grass/pull/8165
 
-**PR Description:** [what the PR says; much of the content above
-adapts into it]
+**PR Description:** Adds `test_print_json_polar`, which checks the bounds `r.proj -p` reports for `input_polar` in EPSG:3413. The expected bounds were checked independently with `cs2cs` at the edge points `bordwalk_edge()` samples, so they reflect current sampling rather than the exact extent. A module-scoped fixture keeps the PR independent of draft #7807, whose polar test compares serial and parallel output instead of `-p` bounds. It references #2512 without closing it, states that it adds coverage rather than fixing a confirmed bug, lists the test and Ruff results, and discloses that I used Claude Code to navigate the codebase, investigate the issue, and help draft the test, which I reviewed and ran.
 
 **Maintainer Feedback:**
 
-- [Date]: [feedback received, or "none yet"; silence is a normal
-  state and costs you nothing]
+- 2026-11-10: none yet (no reviews or comments when recorded).
 - [Date]: [how you addressed it]
 
-**Status:** [Awaiting review / Iterating / Merged / Closed. The
-status is a fact you record, never a grade: the PR is graded as
-opened.]
+**Status:** Awaiting review.
 
 **Toolkit**
 
